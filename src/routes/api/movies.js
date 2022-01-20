@@ -1,10 +1,10 @@
-import * as html2json from 'html2json';
+
 // const puppeteer = require('puppeteer');
 // const https = require('https');
 // const fs = require('fs');
 
-//https://123watchmovies.co/
-//https://www.123movie.lc
+import * as provider1 from '$lib/providers/123movie.lc.js';
+import * as provider2 from '$lib/providers/123moviess.se.js';
 
 const download = async (name, url) => {
     https.get(url, res => {
@@ -22,32 +22,17 @@ const download = async (name, url) => {
 
 export const get = async (request) => {
     const title = request.url.searchParams.get('title');
-    const headers = { method: 'GET', headers: { 'Content-Type': 'application/json', } };
-    const searchResults = await fetch(`https://www.123movie.lc/search/${title}/`, headers);
-    const body = await searchResults.text();
-    const htmlBody = body.match(/<body([\s\S]*?)(.*)<\/body>/g).toString();
-    const jsonBody = html2json.default.html2json(htmlBody);
-    const bodyJSON = jsonBody.child[0];
-    const footerIndex = bodyJSON.child.findIndex(i => i.tag == 'footer');
-    let pageDiv = bodyJSON.child[footerIndex - 1].child[0];
-    pageDiv = pageDiv.child.find(i => i.child).child[0]
-    pageDiv = pageDiv.child.find(i => i.attr.class.includes('movies-list'))
-    let movies = pageDiv.child.filter(i => i.child)
-    movies = movies.map(i => {
-        const link = i.child[1];
-        if (!link) { return }
-        return {
-            id: i.attr['data-movie-id'],
-            href: link.attr.href,
-            rating: link.child[1].child[0].text,
-            quality: link.child[3].child[0].text,
-            poster: link.child[5].attr.src,
-            title: link.child[8].child[0].text
-        }
-    }).filter(i => i);
+    const providers = [
+        provider1, provider2
+    ];
+
+    const results = await Promise.all(providers.map(i => i.search(title)));
+    // const res = await provider2.search(title);
+
+
     // console.log(movies)
     return {
-        body: movies
+        body: results
     };
 }
 
@@ -55,19 +40,9 @@ export const post = async (request) => {
     const movie = request.body;
     browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
-    await page.goto(`${movie.href}watching`);
-    const frames = await page.frames();
-    const frame = frames.sort((a, b) => a.url().split('').length > b.url().split('').length ? -1 : 1)[0];
-    const interv = setInterval(async () => {
-        const video = await frame.$('.jw-video');
-        const src = await video.getProperty('src');
-        const srcVal = await src.jsonValue();
-        if ((!srcVal || srcVal == '')) {
-            await frame.click('.jw-video')
-        } else {
-            clearInterval(interv);
-            console.log('Downloading: ');
-            await download(movie.title, srcVal);
-        }
-    }, 100)
+    const videoUrl = await provider1.post(movie, page);
+    // Download
+    return {
+        body: videoUrl
+    };
 }
