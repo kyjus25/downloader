@@ -5,7 +5,7 @@
 
 import * as provider1 from '$lib/providers/123movie.lc.js';
 import * as provider2 from '$lib/providers/123moviess.se.js';
-import * as provider3 from '$lib/providers/supernova.to.js';
+import * as provider3 from '$lib/providers/goojara.to.js';
 
 const download = async (name, url) => {
     https.get(url, res => {
@@ -23,17 +23,16 @@ const download = async (name, url) => {
 
 export const get = async (request) => {
     const title = request.url.searchParams.get('title');
+    if (!title) { return { status: 400 } }
     const providers = [
         provider1, provider2, provider3
     ];
 
-    //const results = await Promise.all(providers.map(i => i.search(title)));
-    const res = await provider3.search(title);
+    const results = await Promise.all(providers.map(i => i.search(title)));
+    // const res = await provider3.search(title);
 
-
-    // console.log(movies)
     return {
-        body: res
+        body: results
     };
 }
 

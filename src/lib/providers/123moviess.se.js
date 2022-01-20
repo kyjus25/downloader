@@ -21,6 +21,7 @@ export const search = async (title) => {
         return {
             id: null,
             href: provider + link.child[5].attr.href,
+            year: null,
             rating: null,
             quality: link.child[1].child[0].text,
             poster: provider + link.child[3].child[1].attr.src,

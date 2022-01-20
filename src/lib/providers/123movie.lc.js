@@ -23,6 +23,7 @@ export const search = async (title) => {
         return {
             id: i.attr['data-movie-id'],
             href: link.attr.href,
+            year: null,
             rating: link.child[1].child[0].text,
             quality: link.child[3].child[0].text,
             poster: link.child[5].attr.src,

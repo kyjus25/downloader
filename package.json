@@ -18,5 +18,8 @@
     "html2json": "~1.0.2",
     "puppeteer": "~13.0.1"
   },
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "form-data": "~4.0.0"
+  }
 }
